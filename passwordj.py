@@ -11,6 +11,7 @@ import string
 import base64
 from datetime import date
 from random import randint
+from cryptography.fernet import Fernet
 
 #setup window
 window = tkinter.Tk()
@@ -21,31 +22,43 @@ window.title("LifeScript: saving you, one password at a time.")
 someEntry = tkinter.StringVar()
 
 #Functions
+#Parses entry typed by user into an integer list of year, month, date.
 def getNParse():
     intList = []
     listDate = parseEntry(someEntry.get())
     #remove leading zeros to avoid converting to hex
     for i in range(0, len(listDate)):
         intList.append(int(listDate[i].lstrip('0')))
+    #Prints out the difference in days compared to today
     timeDifference(intList)
 
+#Removes dashes from given format
 def parseEntry(someStr):
     userDate = someStr.split("-")
     return(userDate)
 
+#calulates difference in date from today, prints out the difference.
 def timeDifference(userDate):
     today = date.today()
     #Reformat the user date into python date format
     formattedUD = date(userDate[0], userDate[1], userDate[2])
     #find difference between dates
     if formattedUD <= today:
-        print("Smaller than")
+        print("Your date is in the past.")
         return(0)
     elif formattedUD > today:
          daysUntil = (formattedUD - today).days
          print(daysUntil)
          return(daysUntil)
 
+#writes the key to encryption in a text file and locks it
+def lockDownKey(generatedKey):
+    keyFile = open('key.txt', 'w')
+    keyFile.write(generatedKey)
+    keyFile.close
+    #still need to implement locking protocol!
+
+#generates random password
 def genPass():
     userPass = []
     for i in range(0, randint(9,30)):
@@ -83,6 +96,6 @@ secInstructImg = tkinter.PhotoImage(file=r"C:\Users\Zhenger\Desktop\MLH\Password
 secInstruct = tkinter.Label(window, image=secInstructImg, borderwidth=0, height=100)
 secInstruct.grid(column=0, row=5, pady=(0,30), columnspan='10')
 
-genPass()
+lockDownKey("abcdef")
 
 window.mainloop()
