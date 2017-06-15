@@ -25,43 +25,53 @@ someEntry = tkinter.StringVar()
 #Functions
 #parses user's entry and encrypts their password into a hash and saves it to their project directory along with date of release
 def keyCreation():
+    #setup files for writing out
     keyFile = open("key.txt", "wb")
     passFile = open("pass.txt", "wb")
-    #gen password and key (used 32 bytes for AES-256)
-    key = get_random_bytes(32)
+    #gen password and key (used 32 bytes for AES-196)
+    key = get_random_bytes(16)
     #write out key to file
     keyFile.write(key)
     print("Do not move, delete, or tamper with this key. This will prevent you from decrypting your password.")
+    #generate password
     userPass = genPass()
-    cipher = AES.new(key, AES.MODE_EAX)
-    ciphertext, tag = cipher.encrypt_and_digest(userPass)
-    [passFile.write(x) for x in (cipher.nonce, tag, ciphertext)]
-    print(userPass)
     #get the specified date
-    usersDate = getNParse()
-    usersDateFormatted = date(usersDate[0], usersDate[1], usersDate[2])
+    usersDate = str.encode(str(getNParse()))
+    #combine outputs and encrypt
+    output = usersDate+userPass
+    cipher = AES.new(key, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(output)
+    [passFile.write(x) for x in (cipher.nonce, tag, ciphertext)]
+    print(output)
 
 
 #checks current date against the date they set, releases or withholds the key
-def keyManager(userDate):
+def keyManager():
     #variables and dependents
     listDate = []
     today = date.today()
-    dateInfo = open("key.txt", "r")
-    #reads 10 characters from front and splits into year, month, day
-    userDFormatted = parseEntry(str(dateInfo[:10]))
+    #setup files for reading
+    keyFile = open("key.txt", "rb")
+    passFile = open("pass.txt", "rb")
+    nonce, tag, ciphertext = [passFile.read(x) for x in (16, 16, -1)]
+    #read in the key
+    key = keyFile.read()
+    keyFile.close()
+    cipher = AES.new(key, AES.MODE_EAX, nonce)
+    dateDecrypt = parseEntry(str(cipher.decrypt_and_verify(ciphertext, tag)))
+    print(dateDecrypt)
+    return(0)
     #remove leading zeros to avoid converting to hex and appends to listDate
-    for i in range(0, len(userDFormatted)):
+    for i in range(0, len(dateDecrypt)):
         listDate.append(int(userDFormatted[i].lstrip('0')))
     #checks if today is the day specified
     if(checkIfToday(listDate)):
-        #unhashes key
-        print("Your key has be un-encrypted. Open key.txt for your password.")
+        print("Your key has be un-encrypted. Open pass.txt for your password. (If you have it open, close it and re-open it).")
     else:
         print("Nope, you can't un-encrypt your password just yet. --Your past self.")
 
 
-#Parses entry typed by user into an integer list of year, month, date.
+#Parses entry typed by user into a python date format
 def getNParse():
     intList = []
     #read entry
@@ -69,7 +79,8 @@ def getNParse():
     #remove leading zeros to avoid converting to hex and appends to intList
     for i in range(0, len(listDate)):
         intList.append(int(listDate[i].lstrip('0')))
-    return(intList)
+    #return in date format
+    return(date(intList[0], intList[1], intList[2]))
 
 
 #Removes dashes from given format and formats into list
