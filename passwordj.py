@@ -34,7 +34,7 @@ def keyCreation():
     keyFile.write(key)
     print("Do not move, delete, or tamper with this key. This will prevent you from decrypting your password.")
     #generate password
-    userPass = genPass()
+    userPass = str.encode(genPass())
     #get the specified date
     usersDate = str.encode(str(getNParse()))
     #combine outputs and encrypt
@@ -42,7 +42,7 @@ def keyCreation():
     cipher = AES.new(key, AES.MODE_EAX)
     ciphertext, tag = cipher.encrypt_and_digest(output)
     [passFile.write(x) for x in (cipher.nonce, tag, ciphertext)]
-    print(output)
+    # print(userPass)
 
 
 #checks current date against the date they set, releases or withholds the key
@@ -59,9 +59,13 @@ def keyManager():
     keyFile.close()
     cipher = AES.new(key, AES.MODE_EAX, nonce)
     #splits into list of strings
-    dateDecrypt = parseEntry((cipher.decrypt_and_verify(ciphertext, tag)).decode("utf-8"))
+    unfilteredP = (cipher.decrypt_and_verify(ciphertext, tag))
+    passwordDecrypt = unfilteredP.decode("utf-8")
+    passwordDecrypt = passwordDecrypt[10:]
+    dateDecrypt = parseEntry(unfilteredP.decode("utf-8"))
     #cut off non-date data
     dateDecrypt[2] = dateDecrypt[2][:2]
+    dateDecrypt = dateDecrypt[:3]
     print(dateDecrypt)
     #remove leading zeros to avoid converting to hex and appends to listDate
     for i in range(0, len(dateDecrypt)):
@@ -70,9 +74,10 @@ def keyManager():
     convertedDate = date(listDate[0], listDate[1], listDate[2])
     #checks if today is the day specified
     if(checkIfToday(listDate) == 'y'):
-        print("Your key has been un-encrypted. Open pass.txt for your password. (If you have it open, close it and re-open it).")
+        print("Your key has been un-encrypted below.")
+        print(passwordDecrypt)
     elif(checkIfToday(listDate) == 's'):
-        print("Why would you encrypt for a past date? Looks like you've played yourself.")
+        print("Why would you encrypt for a past date? Looks like you're a bit hooped.")
     else:
         print("Nope, you can't un-encrypt your password just yet. Signed, your past self.")
 
@@ -127,7 +132,7 @@ def genPass():
     userPass = []
     for i in range(0, randint(9,30)):
         userPass.append(random.choice(string.ascii_letters+string.digits+string.punctuation))
-    return(str.encode(str(userPass)))
+    return(''.join(userPass))
 
 
 #setup icons and background
@@ -159,9 +164,5 @@ dateField = tkinter.Entry()
 secInstructImg = tkinter.PhotoImage(file=r"C:\Users\Zhenger\Desktop\MLH\Password-Jumbler\mid-instruct-2.gif")
 secInstruct = tkinter.Label(window, image=secInstructImg, borderwidth=0, height=100)
 secInstruct.grid(column=0, row=5, pady=(0,30), columnspan='10')
-
-#test functions
-genPass()
-# lockDownKey("abcdef")
 
 window.mainloop()
