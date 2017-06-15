@@ -58,17 +58,23 @@ def keyManager():
     key = keyFile.read()
     keyFile.close()
     cipher = AES.new(key, AES.MODE_EAX, nonce)
-    dateDecrypt = parseEntry(str(cipher.decrypt_and_verify(ciphertext, tag)))
+    #splits into list of strings
+    dateDecrypt = parseEntry((cipher.decrypt_and_verify(ciphertext, tag)).decode("utf-8"))
+    #cut off non-date data
+    dateDecrypt[2] = dateDecrypt[2][:2]
     print(dateDecrypt)
-    return(0)
     #remove leading zeros to avoid converting to hex and appends to listDate
     for i in range(0, len(dateDecrypt)):
-        listDate.append(int(userDFormatted[i].lstrip('0')))
+        listDate.append(int(dateDecrypt[i].lstrip('0')))
+    #convert into date format
+    convertedDate = date(listDate[0], listDate[1], listDate[2])
     #checks if today is the day specified
-    if(checkIfToday(listDate)):
-        print("Your key has be un-encrypted. Open pass.txt for your password. (If you have it open, close it and re-open it).")
+    if(checkIfToday(listDate) == 'y'):
+        print("Your key has been un-encrypted. Open pass.txt for your password. (If you have it open, close it and re-open it).")
+    elif(checkIfToday(listDate) == 's'):
+        print("Why would you encrypt for a past date? Looks like you've played yourself.")
     else:
-        print("Nope, you can't un-encrypt your password just yet. --Your past self.")
+        print("Nope, you can't un-encrypt your password just yet. Signed, your past self.")
 
 
 #Parses entry typed by user into a python date format
@@ -109,9 +115,11 @@ def checkIfToday(userDate):
     #Reformat the user date into python date format
     formattedUD = date(userDate[0], userDate[1], userDate[2])
     if formattedUD == today:
-        return(True)
+        return('y')
+    elif formattedUD <= today:
+        return('s')
     else:
-        return(False)
+        return('n')
 
 
 #generates random password
