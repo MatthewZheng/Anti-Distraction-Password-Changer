@@ -21,8 +21,6 @@ window.title("LifeScript: saving you, one password at a time.")
 
 #setup global variables
 someEntry = tkinter.StringVar()
-copiedToC = False
-
 
 #Functions
 #copys content to clipboard
@@ -48,7 +46,6 @@ def keyCreation():
     #generate password and copies to clipboard
     userPass = str.encode(genPass())
     copyClipboard(userPass.decode("utf-8"))
-    copiedToC = True
     #get the specified date
     usersDate = str.encode(str(getNParse()))
     #combine outputs and encrypt
@@ -68,17 +65,39 @@ def keyCreation():
     elif userDay == today:
         warning2 = tkinter.Message(topL, text="Your date is today. It seems counter-intuitive to choose today, but do as you wish.", width=1000, pady=20, padx=20)
         warning2.grid(column=5, row=5)
-        topL2 = tkinter.Toplevel()
-        inform = tkinter.Message(topL2, text="Copied to password to clipboard. Do not move, delete, or tamper with the password file or the key. This will prevent you from decrypting your password.", width=1200, pady=20, padx=20)
-        inform.grid(column=5, row=5)
+        tamperWarning()
     elif userDay < today:
         warning3 = tkinter.Message(topL, text="Your date is in the past. To avoid problems, it is highly advisable to choose a future date", width=1000, pady=20, padx=20)
         warning3.grid(column=5, row=5)
-        topL2 = tkinter.Toplevel()
-        inform = tkinter.Message(topL2, text="Copied to password to clipboard. Do not move, delete, or tamper with the password file or the key. This will prevent you from decrypting your password.", width=1200, pady=20, padx=20)
-        inform.grid(column=5, row=5)
+        tamperWarning()
+    else:
+        topL.withdraw()
+        tamperWarning()
 
+#finds if given date is realistic
+def dateValid(userDList):
+    if(userDList[1]>12):
+        return(False)
+    #31 days in  1 3 5 7 8 10 12
+    if (userDList[1] == 1 or userDList[1] == 3 or userDList[1] == 5 or userDList[1] == 7 or userDList[1] == 8 or userDList[1] == 10 or userDList[1] == 12):
+        if (userDList[2] > 31 or userDList[2]<1):
+            return(False)
+    #28 in 2
+    elif (userDList[1] == 2):
+        if(userDList[2] > 28 or userDList[2]<1):
+            return(False)
+    #30 in 4 6 9 11
+    elif (userDList[1] == 4 or userDList[1] == 6 or userDList[1] == 9 or userDList[1] == 11):
+        if(userDList[2] > 30 or userDList[2]<1):
+            return(False)
+    else:
+        return(True)
 
+#pints tamper warning
+def tamperWarning():
+    topL2 = tkinter.Toplevel()
+    inform = tkinter.Message(topL2, text="Copied to password to clipboard. Do not move, delete, or tamper with the password file or the key. This will prevent you from decrypting your password.", width=1200, pady=20, padx=20)
+    inform.grid(column=5, row=5)
 
 #checks current date against the date they set, releases or withholds the key
 def keyManager():
@@ -126,12 +145,15 @@ def getNParse():
     intList = []
     #read entry
     listDate = parseEntry(someEntry.get())
-    #check for error
-    if(len(listDate)<3):
+    #check for length error
+    if(len(listDate)!=3):
         return("error")
     #remove leading zeros to avoid converting to hex and appends to intList
     for i in range(0, len(listDate)):
         intList.append(int(listDate[i].lstrip('0')))
+    #check for date error
+    if(dateValid(intList) == False):
+        return("error")
     #return in date format
     return(date(intList[0], intList[1], intList[2]))
 
