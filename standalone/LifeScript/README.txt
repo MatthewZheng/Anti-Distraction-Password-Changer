@@ -1,1 +1,0 @@
-Click on LifeScript.launch to open the app!
