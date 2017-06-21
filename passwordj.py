@@ -67,7 +67,7 @@ def keyCreation():
         warning2.grid(column=5, row=5)
         tamperWarning()
     elif userDay < today:
-        warning3 = tkinter.Message(topL, text="Your date is in the past. To avoid problems, it is highly advisable to choose a future date", width=1000, pady=20, padx=20)
+        warning3 = tkinter.Message(topL, text="Your date is in the past. It seems counter-intuitive to choose today, but do as you wish.", width=1000, pady=20, padx=20)
         warning3.grid(column=5, row=5)
         tamperWarning()
     else:
@@ -133,8 +133,13 @@ def keyManager():
         copyPass = tkinter.Button(topL, text="Copy to clipboard.", width=20, command=copyClipboard(passwordDecrypt))
         copyPass.grid(column=5, row=6, pady=(0,20))
     elif(checkIfToday(listDate) == 's'):
-        unEncrypt = tkinter.Message(topL, text="Why would you encrypt for a past date? Looks like you're a bit hooped.", width=1000, pady=20, padx=20)
+        # unEncrypt = tkinter.Message(topL, text="Why would you encrypt for a past date? Looks like you're a bit hooped.", width=1000, pady=20, padx=20)
+        # unEncrypt.grid(column=5, row=5)
+        unEncrypt = tkinter.Message(topL, text="Your key has been un-encrypted after the colon: %s" % (passwordDecrypt), width=800, pady=20, padx=20)
         unEncrypt.grid(column=5, row=5)
+        copyPass = tkinter.Button(topL, text="Copy to clipboard.", width=20, command=copyClipboard(passwordDecrypt))
+        copyPass.grid(column=5, row=6, pady=(0,20))
+
     else:
         unEncrypt = tkinter.Message(topL, text="Nope, you can't un-encrypt your password just yet. Signed, your past self.", width=1000, pady=20, padx=20)
         unEncrypt.grid(column=5, row=5)
